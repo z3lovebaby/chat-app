@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      body {
+        margin: 0;
+        padding-bottom: 3rem;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        display: flex;
+      }
+      .right{
+        width: 70%;
+      }
+
+      #form {
+        background: rgba(0, 0, 0, 0.15);
+        padding: 0.25rem;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        height: 3rem;
+        box-sizing: border-box;
+        backdrop-filter: blur(10px);
+      }
+
+      #input {
+        border: none;
+        padding: 0 1rem;
+        flex-grow: 1;
+        border-radius: 2rem;
+        margin: 0.25rem;
+      }
+
+      #input:focus {
+        outline: none;
+      }
+
+      #form > button {
+        background: #333;
+        border: none;
+        padding: 0 1rem;
+        margin: 0.25rem;
+        border-radius: 3px;
+        outline: none;
+        color: #fff;
+      }
+
+      #messages,#drmessages {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      #messages,#drmessages > li {
+        padding: 0.5rem 1rem;
+      }
+
+      #messages > li:nth-child(odd) {
+        background: #efefef;
+      }
+      #drmessages > li:nth-child(odd) {
+        background: #7ff374;
+      }
+      li > a {
+  /* CSS styles for the <a> element */
+  /* Example styles: */
+  color: blue;
+  text-decoration: none;
+}
+li {
+  border-radius: 10px;
+  padding: 10px;
+}
+
+    </style>
+  </head>
+
+  <body>
+    <div class="right">
+      <h1 id="yourname" style="padding: 20px;"></h1>
+      <ul id="messages"></ul>
+      <form id="form" action="">
+        <input id="input" autocomplete="off" /><button>Send</button>
+      </form>
+    </div>
+
+    <div class="left">
+      <h2>LIST MEMBERS</h2>
+      <ul id="users"></ul>
+      <h2>DIRECT MESSAGE (click on the name in the list)</h2>
+      <ul id="drmessages"></ul>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      const socket = io();
+      const messages = document.getElementById("messages");
+      const drmessages = document.getElementById("drmessages");
+      const form = document.getElementById("form");
+      const input = document.getElementById("input");
+      const name = document.getElementById("yourname");
+      const userList = document.getElementById("users");
+      const links = document.getElementsByTagName("a");
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (input.value) {
+          socket.emit("chat", input.value);
+          input.value = "";
+        }
+      });
+
+      socket.on("welcome", (yourname) => {
+        name.textContent = `You are ${yourname}`;
+      });
+
+          socket.on("join", (username) => {
+              alert(`${username} join`);
+            });
+              socket.on("users", (users) => {
+                // Clear the user list
+                userList.innerHTML = '';
+
+                // Loop through the users and create li elements
+                for (const userId in users) {
+
+                  const user = users[userId];
+                  if (user === users[socket.id]) {
+                    const li = document.createElement("li");
+                    const a = document.createElement("a");
+                    a.href = ""; // Add your desired href value here
+                    a.textContent = user + "(Your self)";
+                    li.appendChild(a);
+
+                    // Add the li element to the user list
+                    userList.appendChild(li);
+                    continue;
+                  }
+                  const li = document.createElement("li");
+                  const a = document.createElement("a");
+                  a.href = ""; // Add your desired href value here
+                  a.textContent = user;
+                  li.appendChild(a);
+
+                  // Add the li element to the user list
+                  userList.appendChild(li);
+                }
+              });
+
+      socket.on("sendMsg", (from, msg) => {
+        const item = document.createElement("li");
+        item.textContent = `${from}: ${msg}`;
+        messages.appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+
+
+function handleLinkClick(event) {
+  event.preventDefault();
+  const selectedUser = event.target.textContent;
+  // Xử lý logic khi nhấn vào link
+  console.log(`Clicked on link: ${selectedUser}`);
+  // Thực hiện các hành động khác tùy theo nhu cầu
+
+  // Ví dụ: Gửi tin nhắn trực tiếp đến người dùng được chọn
+  const directMsg = window.prompt("Enter your direct message:");
+  if (directMsg) {
+    socket.emit("directMsg", selectedUser, directMsg);
+    const item = document.createElement("li");
+    item.textContent = `[Direct Message] You to ${selectedUser}: ${directMsg}`;
+    drmessages.appendChild(item);
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+}
+
+// Gắn hàm xử lý sự kiện cho từng thẻ <a>
+//   alert(`${links.length}`);
+// for (let i = 0; i < links.length; i++) {
+//   links[i].addEventListener("click", handleLinkClick);
+// }
+userList.addEventListener("click", function(event) {
+  if (event.target.tagName === "A") {
+    handleLinkClick(event);
+  }
+});
+
+
+socket.on("receiveMsg", (from, msg) => {
+      const item = document.createElement("li");
+      item.textContent = `[Direct Message] ${from}: ${msg}`;
+      drmessages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+
+      socket.on("leave", (name,users, reason) => {
+        alert(`${users} leave because of ${reason}`);
+        userList.innerHTML = '';
+              // Duyệt qua mảng users và tạo các phần tử li tương ứng
+              for (let i = 0; i < users.length; i++) {
+                const user = users[i];
+
+                // Tạo phần tử li
+                const li = document.createElement("li");
+
+                // Đặt nội dung của li là giá trị của user
+                li.textContent = user;
+
+                // Thêm li vào trong ul
+                userList.appendChild(li);
+              }
+      });
+    </script>
+  </body>
+</html>

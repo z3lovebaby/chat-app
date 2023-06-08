@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat App - Enter Username</title>
+    <style>
+      /* Styles for the body */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f2f2f2;
+        text-align: center;
+        height: 100vh;
+      }
+
+      /* Styles for the heading */
+      h1 {
+        color: #333;
+      }
+
+      /* Styles for the form */
+      form {
+        margin-top: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      input[type="text"] {
+        width: 200px;
+        padding: 5px;
+        font-size: 14px;
+      }
+
+      button[type="submit"] {
+        padding: 8px 16px;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+
+      button[type="submit"]:hover {
+        background-color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Enter Your Username</h1>
+
+    <form id="usernameForm" method="post" action="/submitForm">
+      <input type="text" id="username" name="username" required />
+      <button type="submit">Submit</button>
+    </form>
+    
+    <script src="/socket.io/socket.io.js"></script>
+  </body>
+</html>
